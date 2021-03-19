@@ -23,7 +23,7 @@ jobs:
     - *restore_cache
     - run: make check-style
     - *save_cache
-    
+
   push-docker-pr:
     executor:
       name: default
@@ -36,8 +36,8 @@ jobs:
         set -u
         export TAG="${CIRCLE_SHA1:0:7}"
         echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-        docker tag mattermost/cloud-db-factory-horizontal-scaling:test mattermost/cloud-db-factory-horizontal-scaling:$TAG
-        docker push mattermost/cloud-db-factory-horizontal-scaling:$TAG
+        docker tag mattermost/mattermost-apps-cloud-deployer:test mattermost/mattermost-apps-cloud-deployer:$TAG
+        docker push mattermost/mattermost-apps-cloud-deployer:$TAG
 
   push-docker:
     executor:
@@ -57,15 +57,15 @@ jobs:
           TAG="$CIRCLE_TAG"
         fi
         echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
-        docker tag mattermost/cloud-db-factory-horizontal-scaling:test mattermost/cloud-db-factory-horizontal-scaling:$TAG
-        docker push mattermost/cloud-db-factory-horizontal-scaling:$TAG
+        docker tag mattermost/mattermost-apps-cloud-deployer:test mattermost/mattermost-apps-cloud-deployer:$TAG
+        docker push mattermost/mattermost-apps-cloud-deployer:$TAG
 
   scan-image:
     docker:
     - image: registry.gitlab.com/gitlab-org/security-products/analyzers/klar:latest
       environment:
         GIT_STRATEGY: none
-        CI_APPLICATION_REPOSITORY: mattermost/cloud-db-factory-horizontal-scaling
+        CI_APPLICATION_REPOSITORY: mattermost/mattermost-apps-cloud-deployer
         CLAIR_DB_CONNECTION_STRING: "postgresql://postgres:password@localhost:5432/postgres?sslmode=disable&statement_timeout=60000"
         DOCKERFILE_PATH: "build/Dockerfile"
     - image: arminc/clair-db:latest
