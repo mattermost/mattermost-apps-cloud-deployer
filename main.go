@@ -19,7 +19,7 @@ func main() {
 	err := checkEnvVariables()
 	if err != nil {
 		logger.WithError(err).Error("Environment variables were not set")
-		err = sendMattermostErrorNotification(err, "The Mattermost apps deployment failed.")
+		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 		if err != nil {
 			logger.WithError(err).Error("Failed to send Mattermost error notification")
 		}
@@ -29,7 +29,7 @@ func main() {
 	session, err := awsTools.GetAssumeRoleSession(os.Getenv("AppsAssumeRole"))
 	if err != nil {
 		logger.WithError(err).Error("Failed to get assumed role session")
-		err = sendMattermostErrorNotification(err, "The Mattermost apps deployment failed.")
+		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 		if err != nil {
 			logger.WithError(err).Error("Failed to send Mattermost error notification")
 		}
@@ -39,7 +39,7 @@ func main() {
 	bundles, err := awsTools.GetBundles(os.Getenv("AppsBundleBucketName"), session)
 	if err != nil {
 		logger.WithError(err).Error("Failed to get app bundles")
-		err = sendMattermostErrorNotification(err, "The Mattermost apps deployment failed.")
+		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 		if err != nil {
 			logger.WithError(err).Error("Failed to send Mattermost error notification")
 		}
@@ -51,7 +51,7 @@ func main() {
 		err = handleBundleDeployment(bundle, session)
 		if err != nil {
 			logger.WithError(err).Error("Failed to deploy bundle")
-			err = sendMattermostErrorNotification(err, "The Mattermost apps deployment failed.")
+			err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 			if err != nil {
 				logger.WithError(err).Error("Failed to send Mattermost error notification")
 			}
@@ -60,7 +60,7 @@ func main() {
 		deployedBundles = append(deployedBundles, strings.TrimSuffix(bundle, ".zip"))
 	}
 
-	err = sendMattermostNotification(deployedBundles, "The Mattermost apps were successfully deployed/updated")
+	err = sendMattermostNotification(deployedBundles, "Mattermost apps were successfully deployed/updated")
 	if err != nil {
 		logger.WithError(err).Error("Failed to send Mattermost error notification")
 	}
