@@ -93,7 +93,7 @@ func UploadManifestFile(manifestKey, manifestFileName, bundleName string, logger
 
 // GetBundles is used to get all app bundles from a S3 bucket.
 // TODO: Limit of 1000 objects per API call should be handled.
-func GetBundles(bucketName string, session *session.Session) ([]string, error) {
+func GetBundles(bucketName string, session *session.Session, logger log.FieldLogger) ([]string, error) {
 	var bundles []string
 
 	svc := s3.New(session)
@@ -108,8 +108,60 @@ func GetBundles(bucketName string, session *session.Session) ([]string, error) {
 
 	for _, content := range result.Contents {
 		if strings.HasSuffix(*content.Key, ".zip") {
-			bundles = append(bundles, *content.Key)
+			isDeployed, err := IsBundleDeployed(bucketName, *content.Key, session)
+			if err != nil {
+				return nil, err
+			}
+			if !isDeployed {
+				bundles = append(bundles, *content.Key)
+			} else {
+				logger.Infof("Bundle %s is already deployed", *content.Key)
+			}
 		}
 	}
 	return bundles, nil
+}
+
+// IsBundleDeployed checks the bundle object tag to check if it got deployed before.
+func IsBundleDeployed(bucketName, objectKey string, session *session.Session) (bool, error) {
+	svc := s3.New(session)
+	result, err := svc.GetObjectTagging(&s3.GetObjectTaggingInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+	})
+	if err != nil {
+		return false, err
+	}
+
+	for _, tag := range result.TagSet {
+		if *tag.Key == "deployed" && *tag.Value == "true" {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// PutDeployedObjectTag adds a tag to specify that the bundle was deployed.
+func PutDeployedObjectTag(bucketName, objectKey string, session *session.Session) error {
+	svc := s3.New(session)
+
+	input := &s3.PutObjectTaggingInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+		Tagging: &s3.Tagging{
+			TagSet: []*s3.Tag{
+				{
+					Key:   aws.String("deployed"),
+					Value: aws.String("true"),
+				},
+			},
+		},
+	}
+
+	_, err := svc.PutObjectTagging(input)
+	if err != nil {
+		return err
+	}
+	return nil
 }

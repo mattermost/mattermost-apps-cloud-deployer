@@ -41,7 +41,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	bundles, err := awsTools.GetBundles(os.Getenv("AppsBundleBucketName"), session)
+	bundles, err := awsTools.GetBundles(os.Getenv("AppsBundleBucketName"), session, logger)
 	if err != nil {
 		logger.WithError(err).Error("Failed to get app bundles")
 		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
@@ -131,7 +131,13 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	logger.Infof("Deploying lambdas from bundle %s", bundleName)
 	err = deployLambdas(provisionData.LambdaFunctions, bundle, bundleName)
 	if err != nil {
-		return errors.Wrap(err, "failed to get deploy lambda functions for bundle")
+		return errors.Wrap(err, "failed to deploy lambda functions for bundle")
+	}
+
+	logger.Infof("Tagging bundle object %s as deployed", bundleName)
+	err = awsTools.PutDeployedObjectTag(os.Getenv("AppsBundleBucketName"), bundle, session)
+	if err != nil {
+		return errors.Wrap(err, "failed to tag bundle object as deployed")
 	}
 
 	logger.Infof("Removing local files for bundle %s", bundleName)
