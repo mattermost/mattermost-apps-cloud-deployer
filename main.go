@@ -15,6 +15,11 @@ import (
 	apps "github.com/mattermost/mattermost-plugin-apps/aws"
 )
 
+const (
+	// manifestFileName is the name of the bundle's manifest file
+	manifestFileName = "manifest.json"
+)
+
 func main() {
 	err := checkEnvVariables()
 	if err != nil {
@@ -115,6 +120,12 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	err = awsTools.UploadStaticFiles(provisionData.StaticFiles, bundleName, logger)
 	if err != nil {
 		return errors.Wrap(err, "failed to upload bundle assets")
+	}
+
+	logger.Infof("Uploading bundle %s manifest file in %s", bundleName, os.Getenv("StaticBucket"))
+	err = awsTools.UploadManifestFile(provisionData.ManifestKey, manifestFileName, bundleName, logger)
+	if err != nil {
+		return errors.Wrap(err, "failed to upload bundle manifest file")
 	}
 
 	logger.Infof("Deploying lambdas from bundle %s", bundleName)

@@ -65,6 +65,32 @@ func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string,
 	return nil
 }
 
+// UploadManifestFile is used to upload the manifest file to the static S3 bucket.
+func UploadManifestFile(manifestKey, manifestFileName, bundleName string, logger log.FieldLogger) error {
+	bundleDir := fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundleName)
+	fileDir := fmt.Sprintf("%s/%s", bundleDir, manifestFileName)
+	file, err := os.Open(fileDir)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	uploader := s3manager.NewUploader(session.New())
+	_, err = uploader.Upload(
+		&s3manager.UploadInput{
+			Bucket: aws.String(os.Getenv("StaticBucket")),
+			Key:    aws.String(manifestKey),
+			Body:   file,
+		})
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("Uploaded file %s with object name %s", file.Name(), manifestKey)
+	return nil
+}
+
 // GetBundles is used to get all app bundles from a S3 bucket.
 // TODO: Limit of 1000 objects per API call should be handled.
 func GetBundles(bucketName string, session *session.Session) ([]string, error) {
