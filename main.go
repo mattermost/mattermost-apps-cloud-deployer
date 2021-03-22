@@ -65,9 +65,11 @@ func main() {
 		deployedBundles = append(deployedBundles, strings.TrimSuffix(bundle, ".zip"))
 	}
 
-	err = sendMattermostNotification(deployedBundles, "Mattermost apps were successfully deployed/updated")
-	if err != nil {
-		logger.WithError(err).Error("Failed to send Mattermost error notification")
+	if len(deployedBundles) > 0 {
+		err = sendMattermostNotification(deployedBundles, "Mattermost apps were successfully deployed/updated")
+		if err != nil {
+			logger.WithError(err).Error("Failed to send Mattermost error notification")
+		}
 	}
 }
 
