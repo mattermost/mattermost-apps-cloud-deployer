@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// RemoveLocalFiles is used to clean local files after being processed.
 func RemoveLocalFiles(files []string, logger log.FieldLogger) error {
 	for _, file := range files {
 		logger.Infof("Removing file %s", file)

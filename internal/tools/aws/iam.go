@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 )
 
+// GetAssumeRoleSession assumes an IAM role and returns the session.
 func GetAssumeRoleSession(iamRole string) (*session.Session, error) {
 	svcSTS := sts.New(session.New())
 

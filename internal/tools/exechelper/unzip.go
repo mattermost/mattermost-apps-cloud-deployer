@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// UnzipBundle is used to unzip downloaded bundles.
 func UnzipBundle(dir, bundle string) error {
 	bundleName := strings.TrimSuffix(bundle, ".zip")
 

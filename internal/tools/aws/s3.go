@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// DownloadS3Object downloads the specified object from the specified S3 bucket.
 func DownloadS3Object(bucketName, object, dir string, session *session.Session) error {
 	file, err := os.Create(fmt.Sprintf("%s/%s", dir, object))
 	if err != nil {
@@ -36,6 +37,7 @@ func DownloadS3Object(bucketName, object, dir string, session *session.Session) 
 	return nil
 }
 
+// UploadStaticFiles is used to upload static files to the static S3 bucket.
 func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string, logger log.FieldLogger) error {
 	for staticFile, staticKey := range staticFiles {
 		bundleDir := fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundleName)
@@ -63,6 +65,7 @@ func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string,
 	return nil
 }
 
+// GetBundles is used to get all app bundles from a S3 bucket.
 func GetBundles(bucketName string, session *session.Session) ([]string, error) {
 	var bundles []string
 
