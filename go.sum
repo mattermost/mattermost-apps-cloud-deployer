@@ -500,6 +500,8 @@ github.com/mattermost/mattermost-plugin-api v0.0.15-0.20210303034931-22355254f0e
 github.com/mattermost/mattermost-plugin-api v0.0.15-0.20210303034931-22355254f0ea/go.mod h1:l/4SfK13GtRfqlXbI7jWMS/CZHrQboqvDowKkXYuDjY=
 github.com/mattermost/mattermost-plugin-apps v0.1.1-0.20210318194049-764f9e6e3b10 h1:/nZKzO+18kNEFHXqJboq2ZMIQWAWfcaZ8lSqBErEMWs=
 github.com/mattermost/mattermost-plugin-apps v0.1.1-0.20210318194049-764f9e6e3b10/go.mod h1:VP5gUUQHCiiz2X0krK/d/E2kY9X0HHALKv+qFq2sF/8=
+github.com/mattermost/mattermost-plugin-apps v0.2.1-0.20210322143303-90182d4bd510 h1:rhbqifFQKP5xo6O3htkuMwx+ro8Dypb07LARAuQVWMg=
+github.com/mattermost/mattermost-plugin-apps v0.2.1-0.20210322143303-90182d4bd510/go.mod h1:VP5gUUQHCiiz2X0krK/d/E2kY9X0HHALKv+qFq2sF/8=
 github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210120031517-5a7759f4d63b/go.mod h1:tJ3IVS/5N1HwtmgPV2DIWPCjTJR40OCDGbur8vlRfkY=
 github.com/mattermost/mattermost-server/v5 v5.24.0 h1:7aW85q2nPOFgjzOCO1k4m3azdvIClZT3UShY1fYYSdc=
 github.com/mattermost/mattermost-server/v5 v5.24.0/go.mod h1:TVkOfVyk4wGw8j5J2IX3PDCP5R7j20IEP4FAezDK8Wk=

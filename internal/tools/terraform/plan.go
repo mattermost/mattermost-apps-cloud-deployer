@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	// "io/ioutil"
-	// "path"
 	"strings"
 
 	model "github.com/mattermost/mattermost-apps/model"

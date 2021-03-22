@@ -55,7 +55,7 @@ func main() {
 			if err != nil {
 				logger.WithError(err).Error("Failed to send Mattermost error notification")
 			}
-			return
+			continue
 		}
 		deployedBundles = append(deployedBundles, strings.TrimSuffix(bundle, ".zip"))
 	}

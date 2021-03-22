@@ -66,6 +66,7 @@ func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string,
 }
 
 // GetBundles is used to get all app bundles from a S3 bucket.
+// TODO: Limit of 1000 objects per API call should be handled.
 func GetBundles(bucketName string, session *session.Session) ([]string, error) {
 	var bundles []string
 

@@ -11,8 +11,7 @@ func RemoveLocalFiles(files []string, logger log.FieldLogger) error {
 	for _, file := range files {
 		logger.Infof("Removing file %s", file)
 		cmd := exec.Command("rm", "-rf", file)
-		_, err := cmd.Output()
-		if err != nil {
+		if _, err := cmd.Output(); err != nil {
 			return err
 		}
 	}
