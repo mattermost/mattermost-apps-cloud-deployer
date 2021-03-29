@@ -1,5 +1,6 @@
 package mode
 
+// Function covers the lambda function object.
 type Function struct {
 	Name        string
 	ZipFile     string
