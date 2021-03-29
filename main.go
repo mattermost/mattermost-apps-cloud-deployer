@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -113,7 +114,7 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	}
 
 	logger.Infof("Getting bundle details from bundle %s", bundleName)
-	provisionData, err := apps.GetProvisionDataFromFile(fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundle), nil)
+	provisionData, err := apps.GetProvisionDataFromFile(path.Join(os.Getenv("TempDir"), bundle), nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to get bundle details for bundle")
 	}
@@ -143,7 +144,7 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	}
 
 	logger.Infof("Removing local files for bundle %s", bundleName)
-	err = exechelper.RemoveLocalFiles([]string{fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundle), fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundleName)}, logger)
+	err = exechelper.RemoveLocalFiles([]string{path.Join(os.Getenv("TempDir"), bundle), path.Join(os.Getenv("TempDir"), bundleName)}, logger)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete local files")
 	}

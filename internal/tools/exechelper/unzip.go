@@ -1,8 +1,8 @@
 package exechelper
 
 import (
-	"fmt"
 	"os/exec"
+	"path"
 	"strings"
 )
 
@@ -10,12 +10,12 @@ import (
 func UnzipBundle(dir, bundle string) error {
 	bundleName := strings.TrimSuffix(bundle, ".zip")
 
-	cmdMkdir := exec.Command("mkdir", fmt.Sprintf("%s/%s", dir, bundleName))
+	cmdMkdir := exec.Command("mkdir", path.Join(dir, bundleName))
 	if _, err := cmdMkdir.Output(); err != nil {
 		return err
 	}
 
-	cmdUnzip := exec.Command("unzip", fmt.Sprintf("%s/%s", dir, bundle), "-d", fmt.Sprintf("%s/%s", dir, bundleName))
+	cmdUnzip := exec.Command("unzip", path.Join(dir, bundle), "-d", path.Join(dir, bundleName))
 	if _, err := cmdUnzip.Output(); err != nil {
 		return err
 	}

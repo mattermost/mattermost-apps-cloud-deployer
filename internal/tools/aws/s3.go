@@ -1,8 +1,8 @@
 package aws
 
 import (
-	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,7 +16,7 @@ import (
 
 // DownloadS3Object downloads the specified object from the specified S3 bucket.
 func DownloadS3Object(bucketName, object, dir string, session *session.Session) error {
-	file, err := os.Create(fmt.Sprintf("%s/%s", dir, object))
+	file, err := os.Create(path.Join(dir, object))
 	if err != nil {
 		return err
 	}
@@ -40,8 +40,8 @@ func DownloadS3Object(bucketName, object, dir string, session *session.Session) 
 // UploadStaticFiles is used to upload static files to the static S3 bucket.
 func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string, logger log.FieldLogger) error {
 	for staticFile, staticKey := range staticFiles {
-		bundleDir := fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundleName)
-		fileDir := fmt.Sprintf("%s/static/%s", bundleDir, staticFile)
+		bundleDir := path.Join(os.Getenv("TempDir"), bundleName)
+		fileDir := path.Join(bundleDir, "static", staticFile)
 		file, err := os.Open(fileDir)
 		if err != nil {
 			return err
@@ -67,8 +67,8 @@ func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string,
 
 // UploadManifestFile is used to upload the manifest file to the static S3 bucket.
 func UploadManifestFile(manifestKey, manifestFileName, bundleName string, logger log.FieldLogger) error {
-	bundleDir := fmt.Sprintf("%s/%s", os.Getenv("TempDir"), bundleName)
-	fileDir := fmt.Sprintf("%s/%s", bundleDir, manifestFileName)
+	bundleDir := path.Join(os.Getenv("TempDir"), bundleName)
+	fileDir := path.Join(bundleDir, manifestFileName)
 	file, err := os.Open(fileDir)
 	if err != nil {
 		return err
