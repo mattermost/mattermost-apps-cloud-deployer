@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -134,7 +135,7 @@ func IsBundleDeployed(bucketName, objectKey string, session *session.Session) (b
 	}
 
 	for _, tag := range result.TagSet {
-		if *tag.Key == "deployed" && *tag.Value == "true" {
+		if *tag.Key == fmt.Sprintf("deployed_%s", os.Getenv("Environment")) && *tag.Value == "true" {
 			return true, nil
 		}
 	}
@@ -152,7 +153,7 @@ func PutDeployedObjectTag(bucketName, objectKey string, session *session.Session
 		Tagging: &s3.Tagging{
 			TagSet: []*s3.Tag{
 				{
-					Key:   aws.String("deployed"),
+					Key:   aws.String(fmt.Sprintf("deployed_%s", os.Getenv("Environment"))),
 					Value: aws.String("true"),
 				},
 			},
