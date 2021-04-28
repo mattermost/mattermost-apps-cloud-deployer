@@ -147,20 +147,46 @@ func IsBundleDeployed(bucketName, objectKey string, session *session.Session) (b
 func PutDeployedObjectTag(bucketName, objectKey string, session *session.Session) error {
 	svc := s3.New(session)
 
+	result, err := svc.GetObjectTagging(&s3.GetObjectTaggingInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+	})
+	if err != nil {
+		return err
+	}
+
+	tagKey := fmt.Sprintf("deployed_%s", os.Getenv("Environment"))
+	tagExists := false
+	var tags []*s3.Tag
+
+	for _, tag := range result.TagSet {
+		if *tag.Key == tagKey {
+			tags = append(tags, &s3.Tag{
+				Key:   aws.String(tagKey),
+				Value: aws.String("true"),
+			})
+			tagExists = true
+		} else {
+			tags = append(tags, tag)
+		}
+	}
+
+	if !tagExists {
+		tags = append(tags, &s3.Tag{
+			Key:   aws.String(tagKey),
+			Value: aws.String("true"),
+		})
+	}
+
 	input := &s3.PutObjectTaggingInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
 		Tagging: &s3.Tagging{
-			TagSet: []*s3.Tag{
-				{
-					Key:   aws.String(fmt.Sprintf("deployed_%s", os.Getenv("Environment"))),
-					Value: aws.String("true"),
-				},
-			},
+			TagSet: tags,
 		},
 	}
 
-	_, err := svc.PutObjectTagging(input)
+	_, err = svc.PutObjectTagging(input)
 	if err != nil {
 		return err
 	}
