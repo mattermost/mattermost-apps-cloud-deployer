@@ -1,6 +1,6 @@
 # Build the mattermost apps cloud deployer
-ARG DOCKER_BUILD_IMAGE=golang:1.16.2
-ARG DOCKER_BASE_IMAGE=alpine:3.12.4
+ARG DOCKER_BUILD_IMAGE=golang:1.17.3
+ARG DOCKER_BASE_IMAGE=alpine:3.14
 
 FROM ${DOCKER_BUILD_IMAGE} AS build
 WORKDIR /mattermost-apps-cloud-deployer/
