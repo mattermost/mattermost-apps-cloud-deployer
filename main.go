@@ -13,7 +13,7 @@ import (
 	exechelper "github.com/mattermost/mattermost-apps/internal/tools/exechelper"
 	terraform "github.com/mattermost/mattermost-apps/internal/tools/terraform"
 	model "github.com/mattermost/mattermost-apps/model"
-	apps "github.com/mattermost/mattermost-plugin-apps/aws"
+	apps "github.com/mattermost/mattermost-plugin-apps/upstream/upaws"
 )
 
 const (
@@ -114,7 +114,7 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	}
 
 	logger.Infof("Getting bundle details from bundle %s", bundleName)
-	provisionData, err := apps.GetProvisionDataFromFile(path.Join(os.Getenv("TempDir"), bundle), nil)
+	provisionData, err := apps.GetDeployDataFromFile(path.Join(os.Getenv("TempDir"), bundle), nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to get bundle details for bundle")
 	}
