@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
-	apps "github.com/mattermost/mattermost-plugin-apps/aws"
+	apps "github.com/mattermost/mattermost-plugin-apps/upstream/upaws"
 	log "github.com/sirupsen/logrus"
 )
 
