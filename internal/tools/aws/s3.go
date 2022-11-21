@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
 	apps "github.com/mattermost/mattermost-plugin-apps/upstream/upaws"
-	log "github.com/sirupsen/logrus"
+	appsutils "github.com/mattermost/mattermost-plugin-apps/utils"
 )
 
 // DownloadS3Object downloads the specified object from the specified S3 bucket.
@@ -39,7 +39,7 @@ func DownloadS3Object(bucketName, object, dir string, session *session.Session) 
 }
 
 // UploadStaticFiles is used to upload static files to the static S3 bucket.
-func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string, logger log.FieldLogger) error {
+func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string, logger appsutils.Logger) error {
 	for staticFile, staticKey := range staticFiles {
 		bundleDir := path.Join(os.Getenv("TempDir"), bundleName)
 		fileDir := path.Join(bundleDir, "static", staticFile)
@@ -67,7 +67,7 @@ func UploadStaticFiles(staticFiles map[string]apps.AssetData, bundleName string,
 }
 
 // UploadManifestFile is used to upload the manifest file to the static S3 bucket.
-func UploadManifestFile(manifestKey, manifestFileName, bundleName string, logger log.FieldLogger) error {
+func UploadManifestFile(manifestKey, manifestFileName, bundleName string, logger appsutils.Logger) error {
 	bundleDir := path.Join(os.Getenv("TempDir"), bundleName)
 	fileDir := path.Join(bundleDir, manifestFileName)
 	file, err := os.Open(fileDir)
@@ -94,7 +94,7 @@ func UploadManifestFile(manifestKey, manifestFileName, bundleName string, logger
 
 // GetBundles is used to get all app bundles from a S3 bucket.
 // TODO: Limit of 1000 objects per API call should be handled.
-func GetBundles(bucketName string, session *session.Session, logger log.FieldLogger) ([]string, error) {
+func GetBundles(bucketName string, session *session.Session, logger appsutils.Logger) ([]string, error) {
 	var bundles []string
 
 	svc := s3.New(session)

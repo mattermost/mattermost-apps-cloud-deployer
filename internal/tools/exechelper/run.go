@@ -14,13 +14,13 @@ import (
 	"sync"
 	"time"
 
+	appsutils "github.com/mattermost/mattermost-plugin-apps/utils"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 // OutputLogger allows custom logging of the run command output.
-type OutputLogger func(line string, logger log.FieldLogger)
+type OutputLogger func(line string, logger appsutils.Logger)
 
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -37,12 +37,12 @@ func NewID() string {
 	return b.String()
 }
 
-func bufferAndLog(reader io.Reader, buffer *bytes.Buffer, logger log.FieldLogger, outputLogger OutputLogger) error {
+func bufferAndLog(reader io.Reader, buffer *bytes.Buffer, logger appsutils.Logger, outputLogger OutputLogger) error {
 	scanner := bufio.NewScanner(io.TeeReader(reader, buffer))
 	for scanner.Scan() {
 		text := scanner.Text()
 		if outputLogger == nil {
-			logger.Info(scanner.Text())
+			logger.Infof(scanner.Text())
 		} else {
 			outputLogger(text, logger)
 		}
@@ -55,18 +55,18 @@ func bufferAndLog(reader io.Reader, buffer *bytes.Buffer, logger log.FieldLogger
 }
 
 // Run invokes cmd.Run, both logging and returning STDOUT and STDERR, optionally transforming the output first.
-func Run(cmd *exec.Cmd, logger log.FieldLogger, outputLogger OutputLogger) ([]byte, []byte, error) {
+func Run(cmd *exec.Cmd, logger appsutils.Logger, outputLogger OutputLogger) ([]byte, []byte, error) {
 	// Generate a unique identifier for the command invocation by which to group logs.
 	runID := NewID()
 
-	logger = logger.WithFields(log.Fields{
-		"run": runID,
-	})
+	logger = logger.With(
+		"run", runID,
+	)
 
-	logger.WithFields(log.Fields{
-		"cmd":  cmd.Path,
-		"args": cmd.Args,
-	}).Info("Invoking command")
+	logger.With(
+		"cmd", cmd.Path,
+		"args", cmd.Args,
+	).Infof("Invoking command")
 
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
@@ -83,7 +83,7 @@ func Run(cmd *exec.Cmd, logger log.FieldLogger, outputLogger OutputLogger) ([]by
 	go func() {
 		defer wg.Done()
 		if err := bufferAndLog(rStdout, stdout, logger, outputLogger); err != nil {
-			logger.WithError(err).Error("failed to scan stdout")
+			logger.WithError(err).Errorf("failed to scan stdout")
 		}
 	}()
 
@@ -92,7 +92,7 @@ func Run(cmd *exec.Cmd, logger log.FieldLogger, outputLogger OutputLogger) ([]by
 	go func() {
 		defer wg.Done()
 		if err := bufferAndLog(rStderr, stderr, logger, outputLogger); err != nil {
-			logger.WithError(err).Error("failed to scan stderr")
+			logger.WithError(err).Errorf("failed to scan stderr")
 		}
 	}()
 
@@ -106,7 +106,7 @@ func Run(cmd *exec.Cmd, logger log.FieldLogger, outputLogger OutputLogger) ([]by
 	wg.Wait()
 
 	if err != nil {
-		logger.WithError(err).Error("failed invocation")
+		logger.WithError(err).Errorf("failed invocation")
 
 		return stdout.Bytes(), stderr.Bytes(), errors.Wrap(err, "failed invocation")
 	}
