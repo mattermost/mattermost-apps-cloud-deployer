@@ -24,30 +24,30 @@ const (
 func main() {
 	err := checkEnvVariables()
 	if err != nil {
-		logger.WithError(err).Error("Environment variables were not set")
+		logger.WithError(err).Errorf("Environment variables were not set")
 		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 		if err != nil {
-			logger.WithError(err).Error("Failed to send Mattermost error notification")
+			logger.WithError(err).Errorf("Failed to send Mattermost error notification")
 		}
 		os.Exit(1)
 	}
 
 	session, err := awsTools.GetAssumeRoleSession(os.Getenv("AppsAssumeRole"))
 	if err != nil {
-		logger.WithError(err).Error("Failed to get assumed role session")
+		logger.WithError(err).Errorf("Failed to get assumed role session")
 		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 		if err != nil {
-			logger.WithError(err).Error("Failed to send Mattermost error notification")
+			logger.WithError(err).Errorf("Failed to send Mattermost error notification")
 		}
 		os.Exit(1)
 	}
 
 	bundles, err := awsTools.GetBundles(os.Getenv("AppsBundleBucketName"), session, logger)
 	if err != nil {
-		logger.WithError(err).Error("Failed to get app bundles")
+		logger.WithError(err).Errorf("Failed to get app bundles")
 		err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 		if err != nil {
-			logger.WithError(err).Error("Failed to send Mattermost error notification")
+			logger.WithError(err).Errorf("Failed to send Mattermost error notification")
 		}
 		os.Exit(1)
 	}
@@ -56,10 +56,10 @@ func main() {
 	for _, bundle := range bundles {
 		err = handleBundleDeployment(bundle, session)
 		if err != nil {
-			logger.WithError(err).Error("Failed to deploy bundle")
+			logger.WithError(err).Errorf("Failed to deploy bundle")
 			err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
 			if err != nil {
-				logger.WithError(err).Error("Failed to send Mattermost error notification")
+				logger.WithError(err).Errorf("Failed to send Mattermost error notification")
 			}
 			continue
 		}
@@ -69,7 +69,7 @@ func main() {
 	if len(deployedBundles) > 0 {
 		err = sendMattermostNotification(deployedBundles, "Mattermost apps were successfully deployed/updated")
 		if err != nil {
-			logger.WithError(err).Error("Failed to send Mattermost error notification")
+			logger.WithError(err).Errorf("Failed to send Mattermost error notification")
 		}
 	}
 }
@@ -114,7 +114,7 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	}
 
 	logger.Infof("Getting bundle details from bundle %s", bundleName)
-	provisionData, err := apps.GetDeployDataFromFile(path.Join(os.Getenv("TempDir"), bundle), nil)
+	provisionData, err := apps.GetDeployDataFromFile(path.Join(os.Getenv("TempDir"), bundle), logger)
 	if err != nil {
 		return errors.Wrap(err, "failed to get bundle details for bundle")
 	}
@@ -173,7 +173,7 @@ func deployLambdas(lambdaFunctions map[string]apps.FunctionData, bundle, bundleN
 		}
 
 		if os.Getenv("TerraformApply") == "true" {
-			logger.Info("applying Terraform template")
+			logger.Infof("applying Terraform template")
 			err = tf.Apply(function)
 			if err != nil {
 				return errors.Wrap(err, "failed to run Terraform apply")
@@ -185,7 +185,7 @@ func deployLambdas(lambdaFunctions map[string]apps.FunctionData, bundle, bundleN
 		if err != nil {
 			return errors.Wrap(err, "failed to run Terraform plan")
 		}
-		logger.Info("Successfully ran Terraform plan")
+		logger.Infof("Successfully ran Terraform plan")
 
 	}
 	logger.Infof("Successfully deployed all lambda functions for bundle %s", bundleName)

@@ -3,11 +3,11 @@ package exechelper
 import (
 	"os/exec"
 
-	log "github.com/sirupsen/logrus"
+	appsutils "github.com/mattermost/mattermost-plugin-apps/utils"
 )
 
 // RemoveLocalFiles is used to clean local files after being processed.
-func RemoveLocalFiles(files []string, logger log.FieldLogger) error {
+func RemoveLocalFiles(files []string, logger appsutils.Logger) error {
 	for _, file := range files {
 		logger.Infof("Removing file %s", file)
 		cmd := exec.Command("rm", "-rf", file)

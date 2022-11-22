@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-apps/internal/tools/exechelper"
-	log "github.com/sirupsen/logrus"
+	appsutils "github.com/mattermost/mattermost-plugin-apps/utils"
 )
 
 func arg(key string, values ...string) string {
@@ -24,7 +24,7 @@ func arg(key string, values ...string) string {
 	return fmt.Sprintf("%s=%s", key, value)
 }
 
-func outputLogger(line string, logger log.FieldLogger) {
+func outputLogger(line string, logger appsutils.Logger) {
 	line = strings.TrimSpace(line)
 	if len(line) == 0 {
 		return
