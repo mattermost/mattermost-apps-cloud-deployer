@@ -14,6 +14,7 @@ import (
 	terraform "github.com/mattermost/mattermost-apps/internal/tools/terraform"
 	model "github.com/mattermost/mattermost-apps/model"
 	apps "github.com/mattermost/mattermost-plugin-apps/upstream/upaws"
+	"github.com/mattermost/mattermost-plugin-apps/utils"
 )
 
 const (
@@ -101,38 +102,40 @@ func checkEnvVariables() error {
 func handleBundleDeployment(bundle string, session *session.Session) error {
 	bundleName := strings.TrimSuffix(bundle, ".zip")
 
-	logger.Infof("Downloading bundle %s from s3", bundleName)
+	logger := logger.With("bundle", bundleName)
+
+	logger.Infof("Downloading bundle from s3")
 	err := awsTools.DownloadS3Object(os.Getenv("AppsBundleBucketName"), bundle, os.Getenv("TempDir"), session)
 	if err != nil {
 		return errors.Wrap(err, "failed to get s3 object")
 	}
 
-	logger.Infof("Unzipping bundle %s", bundleName)
+	logger.Infof("Unzipping bundle")
 	err = exechelper.UnzipBundle(os.Getenv("TempDir"), bundle)
 	if err != nil {
 		return errors.Wrap(err, "failed to unzip the bundle")
 	}
 
-	logger.Infof("Getting bundle details from bundle %s", bundleName)
+	logger.Infof("Getting bundle details")
 	provisionData, err := apps.GetDeployDataFromFile(path.Join(os.Getenv("TempDir"), bundle), logger)
 	if err != nil {
 		return errors.Wrap(err, "failed to get bundle details for bundle")
 	}
 
-	logger.Infof("Uploading bundle %s assets in %s", bundleName, os.Getenv("StaticBucket"))
+	logger.Infof("Uploading bundle assets in %s", os.Getenv("StaticBucket"))
 	err = awsTools.UploadStaticFiles(provisionData.StaticFiles, bundleName, logger)
 	if err != nil {
 		return errors.Wrap(err, "failed to upload bundle assets")
 	}
 
-	logger.Infof("Uploading bundle %s manifest file in %s", bundleName, os.Getenv("StaticBucket"))
+	logger.Infof("Uploading bundle manifest file in %s", os.Getenv("StaticBucket"))
 	err = awsTools.UploadManifestFile(provisionData.ManifestKey, manifestFileName, bundleName, logger)
 	if err != nil {
 		return errors.Wrap(err, "failed to upload bundle manifest file")
 	}
 
-	logger.Infof("Deploying lambdas from bundle %s", bundleName)
-	err = deployLambdas(provisionData.LambdaFunctions, bundle, bundleName)
+	logger.Infof("Deploying lambdas")
+	err = deployLambdas(logger, provisionData.LambdaFunctions, bundle, bundleName)
 	if err != nil {
 		return errors.Wrap(err, "failed to deploy lambda functions for bundle")
 	}
@@ -151,8 +154,10 @@ func handleBundleDeployment(bundle string, session *session.Session) error {
 	return nil
 }
 
-func deployLambdas(lambdaFunctions map[string]apps.FunctionData, bundle, bundleName string) error {
+func deployLambdas(logger utils.Logger, lambdaFunctions map[string]apps.FunctionData, bundle, bundleName string) error {
 	for zipFile, lambda := range lambdaFunctions {
+		logger := logger.With("lambda_name", lambda.Name)
+
 		function := model.Function{
 			Name:        lambda.Name,
 			Environment: os.Getenv("Environment"),
@@ -178,7 +183,7 @@ func deployLambdas(lambdaFunctions map[string]apps.FunctionData, bundle, bundleN
 			if err != nil {
 				return errors.Wrap(err, "failed to run Terraform apply")
 			}
-			logger.Infof("Successfully deployed lambda function %s", function.Name)
+			logger.Infof("Successfully deployed lambda function")
 			continue
 		}
 		err = tf.Plan(function)
@@ -188,6 +193,8 @@ func deployLambdas(lambdaFunctions map[string]apps.FunctionData, bundle, bundleN
 		logger.Infof("Successfully ran Terraform plan")
 
 	}
-	logger.Infof("Successfully deployed all lambda functions for bundle %s", bundleName)
+
+	logger.Infof("Successfully deployed all lambda functions")
+
 	return nil
 }
