@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/pkg/errors"
+	"go.uber.org/zap/zapcore"
 
 	awsTools "github.com/mattermost/mattermost-apps/internal/tools/aws"
 	exechelper "github.com/mattermost/mattermost-apps/internal/tools/exechelper"
@@ -15,6 +16,7 @@ import (
 	model "github.com/mattermost/mattermost-apps/model"
 	apps "github.com/mattermost/mattermost-plugin-apps/upstream/upaws"
 	"github.com/mattermost/mattermost-plugin-apps/utils"
+	appsutils "github.com/mattermost/mattermost-plugin-apps/utils"
 )
 
 const (
@@ -23,6 +25,8 @@ const (
 )
 
 func main() {
+	logger := appsutils.MustMakeCommandLogger(zapcore.InfoLevel)
+
 	err := checkEnvVariables()
 	if err != nil {
 		logger.WithError(err).Errorf("Environment variables were not set")
@@ -55,7 +59,7 @@ func main() {
 
 	var deployedBundles []string
 	for _, bundle := range bundles {
-		err = handleBundleDeployment(bundle, session)
+		err = handleBundleDeployment(bundle, session, logger)
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to deploy bundle")
 			err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
@@ -99,10 +103,10 @@ func checkEnvVariables() error {
 	return nil
 }
 
-func handleBundleDeployment(bundle string, session *session.Session) error {
+func handleBundleDeployment(bundle string, session *session.Session, logger appsutils.Logger) error {
 	bundleName := strings.TrimSuffix(bundle, ".zip")
 
-	logger := logger.With("bundle", bundleName)
+	logger = logger.With("bundle", bundleName)
 
 	logger.Infof("Downloading bundle from s3")
 	err := awsTools.DownloadS3Object(os.Getenv("AppsBundleBucketName"), bundle, os.Getenv("TempDir"), session)
