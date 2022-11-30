@@ -1,10 +1,10 @@
 terraform {
-  required_version = "0.14.5"
+  required_version = ">= 1.0.0"
   backend "s3" {
     region = "us-east-1"
   }
   required_providers {
-    aws = "~> 3.37.0"
+    aws = "~> 4.41.0"
   }
 }
 
