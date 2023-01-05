@@ -57,9 +57,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	var deployedBundles []string
 	for _, bundle := range bundles {
-		err = handleBundleDeployment(bundle, session, logger)
+		var deployData *apps.DeployData
+		deployData, err = handleBundleDeployment(bundle, session, logger)
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to deploy bundle")
 			err = sendMattermostErrorNotification(err, "Mattermost apps deployment failed.")
@@ -68,11 +68,8 @@ func main() {
 			}
 			continue
 		}
-		deployedBundles = append(deployedBundles, strings.TrimSuffix(bundle, ".zip"))
-	}
 
-	if len(deployedBundles) > 0 {
-		err = sendMattermostNotification(deployedBundles, "Mattermost apps were successfully deployed/updated")
+		err = sendAppDeploymentNotification(deployData, bundle)
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to send Mattermost error notification")
 		}
@@ -103,7 +100,7 @@ func checkEnvVariables() error {
 	return nil
 }
 
-func handleBundleDeployment(bundle string, session *session.Session, logger appsutils.Logger) error {
+func handleBundleDeployment(bundle string, session *session.Session, logger appsutils.Logger) (*apps.DeployData, error) {
 	bundleName := strings.TrimSuffix(bundle, ".zip")
 
 	logger = logger.With("bundle", bundleName)
@@ -111,51 +108,52 @@ func handleBundleDeployment(bundle string, session *session.Session, logger apps
 	logger.Infof("Downloading bundle from s3")
 	err := awsTools.DownloadS3Object(os.Getenv("AppsBundleBucketName"), bundle, os.Getenv("TempDir"), session)
 	if err != nil {
-		return errors.Wrap(err, "failed to get s3 object")
+		return nil, errors.Wrap(err, "failed to get s3 object")
 	}
 
 	logger.Infof("Unzipping bundle")
 	err = exechelper.UnzipBundle(os.Getenv("TempDir"), bundle)
 	if err != nil {
-		return errors.Wrap(err, "failed to unzip the bundle")
+		return nil, errors.Wrap(err, "failed to unzip the bundle")
 	}
 
 	logger.Infof("Getting bundle details")
 	provisionData, err := apps.GetDeployDataFromFile(path.Join(os.Getenv("TempDir"), bundle), logger)
 	if err != nil {
-		return errors.Wrap(err, "failed to get bundle details for bundle")
+		return nil, errors.Wrap(err, "failed to get bundle details for bundle")
 	}
 
 	logger.Infof("Uploading bundle assets in %s", os.Getenv("StaticBucket"))
 	err = awsTools.UploadStaticFiles(provisionData.StaticFiles, bundleName, logger)
 	if err != nil {
-		return errors.Wrap(err, "failed to upload bundle assets")
+		return provisionData, errors.Wrap(err, "failed to upload bundle assets")
 	}
 
 	logger.Infof("Uploading bundle manifest file in %s", os.Getenv("StaticBucket"))
 	err = awsTools.UploadManifestFile(provisionData.ManifestKey, manifestFileName, bundleName, logger)
 	if err != nil {
-		return errors.Wrap(err, "failed to upload bundle manifest file")
+		return provisionData, errors.Wrap(err, "failed to upload bundle manifest file")
 	}
 
 	logger.Infof("Deploying lambdas")
 	err = deployLambdas(logger, provisionData.LambdaFunctions, bundle, bundleName)
 	if err != nil {
-		return errors.Wrap(err, "failed to deploy lambda functions for bundle")
+		return provisionData, errors.Wrap(err, "failed to deploy lambda functions for bundle")
 	}
 
 	logger.Infof("Tagging bundle object %s as deployed", bundleName)
 	err = awsTools.PutDeployedObjectTag(os.Getenv("AppsBundleBucketName"), bundle, session)
 	if err != nil {
-		return errors.Wrap(err, "failed to tag bundle object as deployed")
+		return provisionData, errors.Wrap(err, "failed to tag bundle object as deployed")
 	}
 
 	logger.Infof("Removing local files for bundle %s", bundleName)
 	err = exechelper.RemoveLocalFiles([]string{path.Join(os.Getenv("TempDir"), bundle), path.Join(os.Getenv("TempDir"), bundleName)}, logger)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete local files")
+		return provisionData, errors.Wrap(err, "failed to delete local files")
 	}
-	return nil
+
+	return provisionData, nil
 }
 
 func deployLambdas(logger utils.Logger, lambdaFunctions map[string]apps.FunctionData, bundle, bundleName string) error {

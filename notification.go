@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
+	apps "github.com/mattermost/mattermost-plugin-apps/upstream/upaws"
 	mmmodel "github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
@@ -26,18 +28,36 @@ func send(webhookURL string, payload mmmodel.CommandResponse) error {
 	return nil
 }
 
-func sendMattermostNotification(deployedBundles []string, message string) error {
+func sendAppDeploymentNotification(deployData *apps.DeployData, bundle string) error {
 	var fields []*mmmodel.SlackAttachmentField
-	fields = append(fields, &mmmodel.SlackAttachmentField{Title: message, Short: false})
-	fields = append(fields, &mmmodel.SlackAttachmentField{Title: "Deployed Apps", Short: true})
-	for _, bundle := range deployedBundles {
-		fields = append(fields, &mmmodel.SlackAttachmentField{Value: bundle})
-	}
-	fields = append(fields, &mmmodel.SlackAttachmentField{Title: "Environment", Value: os.Getenv("Environment"), Short: true})
+
+	fields = append(fields, &mmmodel.SlackAttachmentField{
+		Title: "Name",
+		Value: fmt.Sprintf("[%s](%s)", deployData.Manifest.DisplayName, deployData.Manifest.HomepageURL),
+		Short: true,
+	})
+	fields = append(fields, &mmmodel.SlackAttachmentField{
+		Title: "ID",
+		Value: fmt.Sprintf("`%s`", deployData.Manifest.AppID),
+		Short: true,
+	})
+	fields = append(fields, &mmmodel.SlackAttachmentField{
+		Title: "Version",
+		Value: deployData.Manifest.Version,
+		Short: true,
+	})
+	fields = append(fields, &mmmodel.SlackAttachmentField{
+		Title: "Bundle",
+		Value: fmt.Sprintf("`%s`", bundle),
+		Short: true,
+	})
+
+	fields = append(fields, &mmmodel.SlackAttachmentField{Title: "Environment", Value: os.Getenv("Environment"), Short: false})
 
 	attachment := &mmmodel.SlackAttachment{
 		Color:  "#006400",
 		Fields: fields,
+		Title:  "A Mattermost apps was successfully deployed/updated",
 	}
 
 	payload := mmmodel.CommandResponse{
