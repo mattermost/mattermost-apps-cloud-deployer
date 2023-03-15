@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-env:
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+# env:
+#   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+#   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
   test:
