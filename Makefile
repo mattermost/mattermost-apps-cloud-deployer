@@ -62,7 +62,9 @@ build: ## Build the mattermost-apps-cloud-deployer
 .PHONY: build-image
 build-image:  ## Build the docker image for mattermost-apps-cloud-deployer
 	@echo Building Mattermost-Apps-Cloud-Deployer Docker Image
-	echo $$DOCKERHUB_TOKEN | docker login --username $$DOCKERHUB_USERNAME --password-stdin && \
+	: $${DOCKER_USERNAME:?}
+	: $${DOCKER_PASSWORD:?}
+	echo $(DOCKER_PASSWORD) | docker login --username $$DOCKERHUB_USERNAME --password-stdin && \
 	docker buildx build \
 	--platform linux/arm64,linux/amd64 \
 	--build-arg DOCKER_BUILD_IMAGE=$(DOCKER_BUILD_IMAGE) \
@@ -74,7 +76,10 @@ build-image:  ## Build the docker image for mattermost-apps-cloud-deployer
 .PHONY: build-image-with-tag
 build-image-with-tag:  ## Build the docker image for mattermost-cloud-database-factory
 	@echo Building Mattermost-Apps-Cloud-Deployer Docker Image
-	echo $$DOCKERHUB_TOKEN | docker login --username $$DOCKERHUB_USERNAME --password-stdin && \
+	: $${DOCKER_USERNAME:?}
+	: $${DOCKER_PASSWORD:?}
+	: $${TAG:?}
+	echo $(DOCKER_PASSWORD) | docker login --username $(DOCKER_USERNAME) --password-stdin
 	docker buildx build \
     --platform linux/arm64,linux/amd64 \
 	--build-arg DOCKER_BUILD_IMAGE=$(DOCKER_BUILD_IMAGE) \
