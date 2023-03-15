@@ -62,11 +62,36 @@ build: ## Build the mattermost-apps-cloud-deployer
 .PHONY: build-image
 build-image:  ## Build the docker image for mattermost-apps-cloud-deployer
 	@echo Building Mattermost-Apps-Cloud-Deployer Docker Image
-	docker build \
+	echo $$DOCKERHUB_TOKEN | docker login --username $$DOCKERHUB_USERNAME --password-stdin && \
+	docker buildx build \
+	--platform linux/arm64,linux/amd64 \
 	--build-arg DOCKER_BUILD_IMAGE=$(DOCKER_BUILD_IMAGE) \
 	--build-arg DOCKER_BASE_IMAGE=$(DOCKER_BASE_IMAGE) \
 	. -f build/Dockerfile -t $(MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE) \
-	--no-cache
+	--no-cache \
+	--push
+
+.PHONY: build-image-with-tag
+build-image-with-tag:  ## Build the docker image for mattermost-cloud-database-factory
+	@echo Building Mattermost-Apps-Cloud-Deployer Docker Image
+	echo $$DOCKERHUB_TOKEN | docker login --username $$DOCKERHUB_USERNAME --password-stdin && \
+	docker buildx build \
+    --platform linux/arm64,linux/amd64 \
+	--build-arg DOCKER_BUILD_IMAGE=$(DOCKER_BUILD_IMAGE) \
+	--build-arg DOCKER_BASE_IMAGE=$(DOCKER_BASE_IMAGE) \
+	. -f build/Dockerfile -t $(MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE):${TAG} \
+	--no-cache \
+	--push
+
+.PHONY: push-image-pr
+push-image-pr:
+	@echo Push Image PR
+	./scripts/push-image-pr.sh
+
+.PHONY: push-image
+push-image:
+	@echo Push Image
+	./scripts/push-image.sh
 
 .PHONY: install
 install: build
