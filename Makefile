@@ -12,6 +12,7 @@ TERRAFORM_VERSION=1.1.8
 ################################################################################
 
 GO ?= $(shell command -v go 2> /dev/null)
+MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE_REPO ?=mattermost/mattermost-apps-cloud-deployer
 MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE ?= mattermost/mattermost-apps-cloud-deployer:test
 MACHINE = $(shell uname -m)
 GOFLAGS ?= $(GOFLAGS:)
@@ -84,7 +85,7 @@ build-image-with-tag:  ## Build the docker image for mattermost-cloud-database-f
     --platform linux/arm64,linux/amd64 \
 	--build-arg DOCKER_BUILD_IMAGE=$(DOCKER_BUILD_IMAGE) \
 	--build-arg DOCKER_BASE_IMAGE=$(DOCKER_BASE_IMAGE) \
-	. -f build/Dockerfile -t $(MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE):${TAG} \
+	. -f build/Dockerfile -t $(MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE) -t $(MATTERMOST_APPS_CLOUD_DEPLOYER_IMAGE_REPO):${TAG} \
 	--no-cache \
 	--push
 
