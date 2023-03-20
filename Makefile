@@ -103,6 +103,17 @@ push-image:
 install: build
 	go install ./...
 
+# Install dependencies for release notes
+.PHONY: deps
+deps:
+	sudo apt update && sudo apt install hub git && GO111MODULE=on go install k8s.io/release/cmd/release-notes@v0.13.0
+
+# Cut a release
+.PHONY: release
+release:
+	@echo Cut a release
+	sh ./scripts/release.sh
+	
 get-terraform: ## Download terraform only if it's not available. Used in the docker build
 	@if [ ! -f build/terraform ]; then \
 		curl -Lo build/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && cd build && unzip terraform.zip &&\
