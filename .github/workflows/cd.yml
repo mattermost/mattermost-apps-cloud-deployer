@@ -1,9 +1,13 @@
-name: ci
+name: cd
 on:
-  pull_request:
+  workflow_run:
+    workflows: ["ci"]
+    branches-ignore: [master]
+    types:
+      - completed
   push:
-    branches:
-      - main
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   test:
@@ -11,6 +15,6 @@ jobs:
   push-docker:
     uses: ./.github/workflows/.docker-push.yml
     with:
-      is_pr: "${{ github.ref == 'refs/heads/main' }}"
+       is_pr: false
     secrets: inherit
     needs: [test]
