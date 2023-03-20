@@ -20,14 +20,14 @@ jobs:
     needs: [test]
 
   release:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout repo
-      uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      with:
-        fetch-depth: 0
-    - name: ci/publish-release-notes
-      run: |
-        make deps
-        make release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          fetch-depth: 0
+      - name: ci/publish-release-notes
+        run: |
+          make deps
+          make release
   
