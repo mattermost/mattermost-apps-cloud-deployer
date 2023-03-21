@@ -30,4 +30,3 @@ jobs:
         run: |
           make deps
           make release
-  

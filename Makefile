@@ -75,7 +75,7 @@ build-image:  ## Build the docker image for mattermost-apps-cloud-deployer
 	--push
 
 .PHONY: build-image-with-tag
-build-image-with-tag:  ## Build the docker image for mattermost-cloud-database-factory
+build-image-with-tag:  ## Build the docker image for Mattermost-Apps-Cloud-Deployer
 	@echo Building Mattermost-Apps-Cloud-Deployer Docker Image
 	: $${DOCKER_USERNAME:?}
 	: $${DOCKER_PASSWORD:?}
@@ -113,7 +113,7 @@ deps:
 release:
 	@echo Cut a release
 	sh ./scripts/release.sh
-	
+
 get-terraform: ## Download terraform only if it's not available. Used in the docker build
 	@if [ ! -f build/terraform ]; then \
 		curl -Lo build/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && cd build && unzip terraform.zip &&\
