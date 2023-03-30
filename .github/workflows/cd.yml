@@ -1,0 +1,32 @@
+name: cd
+on:
+  workflow_run:
+    workflows: ["ci"]
+    branches-ignore: [master]
+    types:
+      - completed
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  test:
+    uses: ./.github/workflows/.test.yml
+  push-docker:
+    uses: ./.github/workflows/.docker-push.yml
+    with:
+       is_pr: false
+    secrets: inherit
+    needs: [test]
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          fetch-depth: 0
+      - name: ci/publish-release-notes
+        run: |
+          make deps
+          make release
