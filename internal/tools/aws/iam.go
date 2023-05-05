@@ -11,7 +11,12 @@ import (
 
 // GetAssumeRoleSession assumes an IAM role and returns the session.
 func GetAssumeRoleSession(iamRole string) (*session.Session, error) {
-	svcSTS := sts.New(session.New())
+	s, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+
+	svcSTS := sts.New(s)
 
 	input := &sts.AssumeRoleInput{
 		RoleArn:         aws.String(iamRole),
